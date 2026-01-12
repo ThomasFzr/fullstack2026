@@ -103,6 +103,25 @@ Assurez-vous que votre fichier `.env` dans `backend/` correspond à votre config
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=minibnb
-DB_USER=postgres  # ou votre nom d'utilisateur
-DB_PASSWORD=postgres  # ou votre mot de passe
+DB_USER=thomasfoltzer  # Votre nom d'utilisateur système (pas "postgres" sur macOS/Homebrew)
+DB_PASSWORD=  # Généralement vide pour l'utilisateur local
+```
+
+## Import des données Airbnb
+
+Si vous avez un fichier `airbnb.sql` à importer :
+
+```bash
+cd backend
+npx tsx src/scripts/import-airbnb.ts
+```
+
+Le script va :
+- Parser le fichier SQL depuis `~/Downloads/airbnb.sql`
+- Créer des utilisateurs hôtes (email: `host_1@airbnb.local`, mot de passe: `password123`)
+- Importer les annonces dans la base de données
+
+Vérification :
+```bash
+psql -U thomasfoltzer -d minibnb -c "SELECT COUNT(*) FROM listings;"
 ```

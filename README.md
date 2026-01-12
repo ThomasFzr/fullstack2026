@@ -56,8 +56,9 @@ createdb minibnb
 # Exécuter le schéma
 psql minibnb < database/schema.sql
 
-# Optionnel : Ajouter des données de test
-psql minibnb < database/seed.sql
+# Optionnel : Importer des données Airbnb
+cd backend
+npx tsx src/scripts/import-airbnb.ts
 ```
 
 **Option B : Installation via Homebrew (macOS)**
