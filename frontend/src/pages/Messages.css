@@ -1,0 +1,148 @@
+.messages-page h1 {
+  margin-bottom: 2rem;
+}
+
+.messages-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  height: 600px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.conversations-list {
+  border-right: 1px solid #eee;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.conversations-list h2 {
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.conversations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversation-item {
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: 1px solid transparent;
+}
+
+.conversation-item:hover {
+  background-color: #f5f5f5;
+}
+
+.conversation-item.active {
+  background-color: #e3f2fd;
+  border-color: #ff5a5f;
+}
+
+.conversation-item h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.conversation-item p {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.conversation-date {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.messages-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messages-list {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.message {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+}
+
+.message.sent {
+  align-self: flex-end;
+  background-color: #ff5a5f;
+  color: white;
+}
+
+.message.received {
+  align-self: flex-start;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.message-content {
+  margin-bottom: 0.25rem;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.message-form {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.message-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.message-input:focus {
+  outline: none;
+  border-color: #ff5a5f;
+}
+
+.no-selection,
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+}
+
+@media (max-width: 968px) {
+  .messages-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .conversations-list {
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    max-height: 200px;
+  }
+}
