@@ -12,6 +12,14 @@ export const Messages = () => {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Désactiver le scroll de la page au montage du composant
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
   const scrollToBottom = (instant = false) => {
     if (instant) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
