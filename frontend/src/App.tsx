@@ -11,6 +11,7 @@ import { CreateListing } from './pages/CreateListing'
 import { EditListing } from './pages/EditListing'
 import { MyListings } from './pages/MyListings'
 import { MyBookings } from './pages/MyBookings'
+import { HostBookings } from './pages/HostBookings'
 import { Messages } from './pages/Messages'
 import { Profile } from './pages/Profile'
 import './App.css'
@@ -57,6 +58,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MyBookings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/host-bookings"
+                element={
+                  <ProtectedRoute>
+                    <HostBookings />
                   </ProtectedRoute>
                 }
               />

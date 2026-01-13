@@ -239,3 +239,20 @@ export const markAsRead = async (
     next(error);
   }
 };
+
+export const getUnreadCount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return next(new AppError('Non authentifié', 401));
+    }
+
+    const count = await MessageModel.countUnreadMessages(req.user.id);
+    res.json({ count });
+  } catch (error) {
+    next(error);
+  }
+};

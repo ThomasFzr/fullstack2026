@@ -1,7 +1,94 @@
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { listingService, Listing } from '../services/listing.service';
 import './MyListings.css';
+
+interface ListingCardProps {
+  listing: Listing;
+  firstImage: string | null;
+  index: number;
+  onDelete: (id: number) => void;
+  isDeleting: boolean;
+}
+
+const ListingCard: React.FC<ListingCardProps> = ({ listing, firstImage, index, onDelete, isDeleting }) => {
+  const [imageError, setImageError] = useState(false);
+
+  // Fonction robuste pour extraire la première image
+  const getFirstImage = (): string | null => {
+    if (!listing.images) return null;
+    
+    // Si c'est une string, essayer de parser
+    if (typeof listing.images === 'string') {
+      try {
+        const parsed = JSON.parse(listing.images);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[0];
+        }
+        return null;
+      } catch {
+        // Si le parsing échoue, c'est peut-être une URL directe ou base64
+        return listing.images.length > 0 ? listing.images : null;
+      }
+    }
+    
+    // Si c'est un array
+    if (Array.isArray(listing.images) && listing.images.length > 0) {
+      return listing.images[0];
+    }
+    
+    return null;
+  };
+
+  const image = firstImage || getFirstImage();
+
+  return (
+    <div 
+      className="listing-card"
+      style={{ animationDelay: `${index * 0.1}s` }}
+    >
+      {image && !imageError ? (
+        <img 
+          src={image} 
+          alt={listing.title}
+          onError={() => {
+            console.error('Erreur chargement image pour listing', listing.id);
+            setImageError(true);
+          }}
+          onLoad={() => setImageError(false)}
+        />
+      ) : (
+        <div className="listing-image-placeholder">
+          <span>Aucune image</span>
+        </div>
+      )}
+      <div className="listing-info">
+        <h3>{listing.title}</h3>
+        <p className="location">
+          <span>📍</span>
+          <span>{listing.city}, {listing.country}</span>
+        </p>
+        <p className="price">{listing.price_per_night}€ / nuit</p>
+        <div className="listing-actions">
+          <Link to={`/listings/${listing.id}`} className="btn btn-outline">
+            Voir
+          </Link>
+          <Link to={`/listings/${listing.id}/edit`} className="btn btn-edit">
+            Éditer
+          </Link>
+          <button
+            className="btn btn-danger"
+            onClick={() => onDelete(listing.id)}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Suppression...' : 'Supprimer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const MyListings = () => {
   const queryClient = useQueryClient();
@@ -10,17 +97,6 @@ export const MyListings = () => {
     queryKey: ['my-listings'],
     queryFn: listingService.getMyListings,
   });
-
-  // Debug: vérifier les images
-  if (listings && listings.length > 0) {
-    console.log('Listings avec images:', listings.map(l => ({
-      id: l.id,
-      title: l.title,
-      images: l.images,
-      imagesType: typeof l.images,
-      imagesLength: Array.isArray(l.images) ? l.images.length : 'not array'
-    })));
-  }
 
   const deleteMutation = useMutation({
     mutationFn: listingService.delete,
@@ -37,6 +113,32 @@ export const MyListings = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
       deleteMutation.mutate(id);
     }
+  };
+
+  // Fonction robuste pour extraire la première image
+  const getFirstImage = (listing: Listing): string | null => {
+    if (!listing.images) return null;
+    
+    // Si c'est une string, essayer de parser
+    if (typeof listing.images === 'string') {
+      try {
+        const parsed = JSON.parse(listing.images);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[0];
+        }
+        return null;
+      } catch {
+        // Si le parsing échoue, c'est peut-être une URL directe ou base64
+        return listing.images.length > 0 ? listing.images : null;
+      }
+    }
+    
+    // Si c'est un array
+    if (Array.isArray(listing.images) && listing.images.length > 0) {
+      return listing.images[0];
+    }
+    
+    return null;
   };
 
   if (isLoading) {
@@ -58,54 +160,17 @@ export const MyListings = () => {
       {listings && listings.length > 0 ? (
         <div className="listings-grid">
           {listings.map((listing: Listing, index: number) => {
-            const firstImage = listing.images && Array.isArray(listing.images) && listing.images.length > 0 
-              ? listing.images[0] 
-              : null;
+            const firstImage = getFirstImage(listing);
             
             return (
-              <div 
-                key={listing.id} 
-                className="listing-card"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {firstImage ? (
-                  <img 
-                    src={firstImage} 
-                    alt={listing.title}
-                    onError={(e) => {
-                      console.error('Erreur chargement image pour listing', listing.id, firstImage?.substring(0, 50));
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="listing-image-placeholder">
-                    <span>Aucune image</span>
-                  </div>
-                )}
-              <div className="listing-info">
-                <h3>{listing.title}</h3>
-                <p className="location">
-                  <span>📍</span>
-                  <span>{listing.city}, {listing.country}</span>
-                </p>
-                <p className="price">{listing.price_per_night}€ / nuit</p>
-                <div className="listing-actions">
-                  <Link to={`/listings/${listing.id}`} className="btn btn-outline">
-                    Voir
-                  </Link>
-                  <Link to={`/listings/${listing.id}/edit`} className="btn btn-edit">
-                    Éditer
-                  </Link>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDelete(listing.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
-                  </button>
-                </div>
-              </div>
-            </div>
+              <ListingCard 
+                key={listing.id}
+                listing={listing}
+                firstImage={firstImage}
+                index={index}
+                onDelete={handleDelete}
+                isDeleting={deleteMutation.isPending}
+              />
             );
           })}
         </div>

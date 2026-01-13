@@ -51,4 +51,9 @@ export const messageService = {
   markAsRead: async (conversationId: number): Promise<void> => {
     await api.post(`/messages/conversations/${conversationId}/read`);
   },
+
+  getUnreadCount: async (): Promise<number> => {
+    const response = await api.get('/messages/unread-count');
+    return response.data.count;
+  },
 };

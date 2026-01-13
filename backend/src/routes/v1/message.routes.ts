@@ -9,6 +9,7 @@ import {
   getMessages,
   sendMessage,
   markAsRead,
+  getUnreadCount,
 } from '../../controllers/message.controller';
 
 const router = Router();
@@ -131,5 +132,19 @@ router.post(
  *         description: Messages marqués comme lus
  */
 router.post('/conversations/:id/read', markAsRead);
+
+/**
+ * @swagger
+ * /api/v1/messages/unread-count:
+ *   get:
+ *     summary: Compte les messages non lus de l'utilisateur
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Nombre de messages non lus
+ */
+router.get('/unread-count', getUnreadCount);
 
 export { router as messageRoutes };

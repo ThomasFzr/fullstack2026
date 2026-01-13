@@ -31,9 +31,11 @@ export const Messages = () => {
 
   useEffect(() => {
     if (selectedConversation) {
-      messageService.markAsRead(selectedConversation);
+      messageService.markAsRead(selectedConversation).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['unread-messages-count'] });
+      });
     }
-  }, [selectedConversation, messages]);
+  }, [selectedConversation, messages, queryClient]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();

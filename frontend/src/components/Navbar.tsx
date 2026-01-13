@@ -1,10 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import { messageService } from '../services/message.service';
 import './Navbar.css';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const { data: unreadCount } = useQuery({
+    queryKey: ['unread-messages-count'],
+    queryFn: messageService.getUnreadCount,
+    enabled: !!user,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
+  });
 
   const handleLogout = () => {
     logout();
@@ -24,10 +33,16 @@ export const Navbar = () => {
                 <>
                   <Link to="/my-listings">Mes annonces</Link>
                   <Link to="/listings/create">Créer une annonce</Link>
+                  <Link to="/host-bookings">Réservations reçues</Link>
                 </>
               )}
               <Link to="/my-bookings">Mes réservations</Link>
-              <Link to="/messages">Messages</Link>
+              <Link to="/messages" className="messages-link">
+                Messages
+                {unreadCount && unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount}</span>
+                )}
+              </Link>
               <Link to="/profile">Profil</Link>
               <button onClick={handleLogout} className="btn-logout">
                 Déconnexion

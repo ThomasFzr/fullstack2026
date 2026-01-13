@@ -15,6 +15,8 @@ export interface Booking {
   listing_images?: string[] | string;
   listing_city?: string;
   listing_country?: string;
+  guest_name?: string;
+  guest_email?: string;
 }
 
 export interface CreateBookingData {
@@ -47,5 +49,10 @@ export const bookingService = {
 
   cancel: async (id: number): Promise<void> => {
     await api.delete(`/bookings/${id}`);
+  },
+
+  getHostBookings: async (): Promise<Booking[]> => {
+    const response = await api.get('/bookings');
+    return response.data;
   },
 };

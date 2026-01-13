@@ -117,4 +117,17 @@ export class MessageModel {
       [conversationId, userId]
     );
   }
+
+  static async countUnreadMessages(userId: number): Promise<number> {
+    const result = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM messages m
+       JOIN conversations c ON m.conversation_id = c.id
+       WHERE (c.guest_id = $1 OR c.host_id = $1)
+         AND m.sender_id != $1
+         AND m.read_at IS NULL`,
+      [userId]
+    );
+    return parseInt(result.rows[0].count) || 0;
+  }
 }
