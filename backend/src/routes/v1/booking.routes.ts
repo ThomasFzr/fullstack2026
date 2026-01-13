@@ -28,7 +28,7 @@ router.use(authenticate);
  *       200:
  *         description: Liste des réservations
  */
-router.get('/', authorize('host'), getBookings);
+router.get('/', getBookings);
 
 /**
  * @swagger

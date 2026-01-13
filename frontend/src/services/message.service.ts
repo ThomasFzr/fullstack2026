@@ -7,6 +7,7 @@ export interface Conversation {
   host_id: number;
   listing_title?: string;
   other_user_name?: string;
+  unread_count?: number;
   created_at: string;
   updated_at: string;
 }

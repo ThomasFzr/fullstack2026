@@ -38,8 +38,8 @@ export const Navbar = () => {
               )}
               <Link to="/my-bookings">Mes réservations</Link>
               <Link to="/messages" className="messages-link">
-                Messages
-                {unreadCount && unreadCount > 0 && (
+                <span className="messages-text">Messages</span>
+                {(unreadCount ?? 0) > 0 && (
                   <span className="notification-badge">{unreadCount}</span>
                 )}
               </Link>

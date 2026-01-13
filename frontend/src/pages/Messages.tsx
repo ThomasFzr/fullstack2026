@@ -29,6 +29,28 @@ export const Messages = () => {
     },
   });
 
+  const handleSelectConversation = async (conversationId: number) => {
+    setSelectedConversation(conversationId);
+    
+    // Optimistic update: mettre à jour immédiatement la UI
+    queryClient.setQueryData(['conversations'], (old: Conversation[] | undefined) => {
+      if (!old) return old;
+      return old.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, unread_count: 0 }
+          : conv
+      );
+    });
+    
+    // Invalider immédiatement le compteur de notifications
+    queryClient.invalidateQueries({ queryKey: ['unread-messages-count'] });
+    
+    // Marquer comme lu en arrière-plan
+    messageService.markAsRead(conversationId).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+    });
+  };
+
   useEffect(() => {
     if (selectedConversation) {
       messageService.markAsRead(selectedConversation).then(() => {
@@ -57,10 +79,15 @@ export const Messages = () => {
                   key={conversation.id}
                   className={`conversation-item ${
                     selectedConversation === conversation.id ? 'active' : ''
-                  }`}
-                  onClick={() => setSelectedConversation(conversation.id)}
+                  } ${(conversation.unread_count ?? 0) > 0 ? 'has-unread' : ''}`}
+                  onClick={() => handleSelectConversation(conversation.id)}
                 >
-                  <h3>{conversation.listing_title || 'Annonce'}</h3>
+                  <div className="conversation-header">
+                    <h3>{conversation.listing_title || 'Annonce'}</h3>
+                    {(conversation.unread_count ?? 0) > 0 && (
+                      <span className="unread-badge">{conversation.unread_count}</span>
+                    )}
+                  </div>
                   <p>{conversation.other_user_name}</p>
                   <span className="conversation-date">
                     {format(new Date(conversation.updated_at), 'dd/MM/yyyy')}

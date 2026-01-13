@@ -60,6 +60,12 @@ export const HostBookings = () => {
     return null;
   };
 
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+
+  const handleImageError = (bookingId: number) => {
+    setImageErrors(prev => ({ ...prev, [bookingId]: true }));
+  };
+
   if (isLoading) return <div>Chargement...</div>;
 
   return (
@@ -69,7 +75,7 @@ export const HostBookings = () => {
         <div className="bookings-list">
           {bookings.map((booking: Booking) => {
             const listingImage = getListingImage(booking);
-            const [imageError, setImageError] = useState(false);
+            const imageError = imageErrors[booking.id] || false;
             
             return (
               <div key={booking.id} className="booking-card">
@@ -83,11 +89,7 @@ export const HostBookings = () => {
                         <img 
                           src={listingImage} 
                           alt={booking.listing_title || 'Annonce'}
-                          onError={() => {
-                            console.error('Erreur chargement image pour booking', booking.id);
-                            setImageError(true);
-                          }}
-                          onLoad={() => setImageError(false)}
+                          onError={() => handleImageError(booking.id)}
                         />
                       ) : (
                         <div className="booking-image-placeholder">

@@ -63,14 +63,20 @@ export class MessageModel {
   }
 
   static async findConversationsByUserId(userId: number): Promise<
-    (Conversation & { listing_title: string; other_user_name: string })[]
+    (Conversation & { listing_title: string; other_user_name: string; unread_count: number })[]
   > {
     const result = await pool.query(
       `SELECT c.*, l.title as listing_title,
               CASE
                 WHEN c.guest_id = $1 THEN CONCAT(u2.first_name, ' ', u2.last_name)
                 ELSE CONCAT(u1.first_name, ' ', u1.last_name)
-              END as other_user_name
+              END as other_user_name,
+              (SELECT COUNT(*) 
+               FROM messages m 
+               WHERE m.conversation_id = c.id 
+                 AND m.sender_id != $1 
+                 AND m.read_at IS NULL
+              ) as unread_count
        FROM conversations c
        JOIN listings l ON c.listing_id = l.id
        JOIN users u1 ON c.guest_id = u1.id
