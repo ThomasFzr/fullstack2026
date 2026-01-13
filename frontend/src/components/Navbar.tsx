@@ -18,7 +18,6 @@ export const Navbar = () => {
           MiniBnB
         </Link>
         <div className="navbar-links">
-          <Link to="/listings">Annonces</Link>
           {user ? (
             <>
               {user.is_host && (
@@ -35,10 +34,7 @@ export const Navbar = () => {
               </button>
             </>
           ) : (
-            <>
-              <Link to="/login">Connexion</Link>
-              <Link to="/register">Inscription</Link>
-            </>
+            <Link to="/login" className="btn-login">Connexion</Link>
           )}
         </div>
       </div>
