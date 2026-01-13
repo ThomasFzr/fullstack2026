@@ -88,7 +88,13 @@ export const getListingById = async (
 ) => {
   try {
     const { id } = req.params;
-    const listing = await ListingModel.findById(parseInt(id));
+    const listingId = parseInt(id);
+    
+    if (isNaN(listingId)) {
+      return next(new AppError('ID invalide', 400, 'INVALID_ID'));
+    }
+    
+    const listing = await ListingModel.findById(listingId);
 
     if (!listing) {
       return next(new AppError('Annonce non trouvée', 404, 'NOT_FOUND'));
@@ -207,7 +213,13 @@ export const updateListing = async (
     }
 
     const { id } = req.params;
-    const listing = await ListingModel.findById(parseInt(id));
+    const listingId = parseInt(id);
+    
+    if (isNaN(listingId)) {
+      return next(new AppError('ID invalide', 400, 'INVALID_ID'));
+    }
+    
+    const listing = await ListingModel.findById(listingId);
 
     if (!listing) {
       return next(new AppError('Annonce non trouvée', 404));
@@ -218,7 +230,7 @@ export const updateListing = async (
       // Vérifier si c'est un co-hôte avec les bonnes permissions
       if (req.user.role === 'cohost') {
         const permission = await CohostModel.findPermission(
-          parseInt(id),
+          listingId,
           req.user.id
         );
         if (!permission || !permission.can_edit_listing) {
@@ -243,7 +255,7 @@ export const updateListing = async (
     if (req.body.amenities !== undefined) updateData.amenities = req.body.amenities;
     if (req.body.rules !== undefined) updateData.rules = req.body.rules;
 
-    const updated = await ListingModel.update(parseInt(id), updateData);
+    const updated = await ListingModel.update(listingId, updateData);
 
     // Parser les JSON fields
     const formattedListing = {
@@ -272,7 +284,13 @@ export const deleteListing = async (
     }
 
     const { id } = req.params;
-    const listing = await ListingModel.findById(parseInt(id));
+    const listingId = parseInt(id);
+    
+    if (isNaN(listingId)) {
+      return next(new AppError('ID invalide', 400, 'INVALID_ID'));
+    }
+    
+    const listing = await ListingModel.findById(listingId);
 
     if (!listing) {
       return next(new AppError('Annonce non trouvée', 404));
@@ -283,7 +301,7 @@ export const deleteListing = async (
       return next(new AppError('Accès refusé', 403));
     }
 
-    await ListingModel.delete(parseInt(id));
+    await ListingModel.delete(listingId);
 
     res.json({
       message: 'Annonce supprimée avec succès',

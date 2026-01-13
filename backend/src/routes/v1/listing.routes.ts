@@ -61,6 +61,21 @@ router.get(
 
 /**
  * @swagger
+ * /api/v1/listings/my-listings:
+ *   get:
+ *     summary: Liste les annonces de l'utilisateur connecté
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des annonces de l'utilisateur
+ */
+// Route spécifique doit être avant la route paramétrée /:id
+router.get('/my-listings', authenticate, getMyListings);
+
+/**
+ * @swagger
  * /api/v1/listings/{id}:
  *   get:
  *     summary: Récupère une annonce par son ID
@@ -81,20 +96,6 @@ router.get('/:id', cacheMiddleware(300), getListingById);
 
 // Routes protégées
 router.use(authenticate);
-
-/**
- * @swagger
- * /api/v1/listings/my-listings:
- *   get:
- *     summary: Liste les annonces de l'utilisateur connecté
- *     tags: [Listings]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Liste des annonces de l'utilisateur
- */
-router.get('/my-listings', getMyListings);
 
 /**
  * @swagger
