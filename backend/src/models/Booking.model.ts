@@ -39,7 +39,16 @@ export class BookingModel {
 
   static async findByGuestId(guestId: number): Promise<Booking[]> {
     const result = await pool.query(
-      'SELECT * FROM bookings WHERE guest_id = $1 ORDER BY check_in DESC',
+      `SELECT 
+        b.*,
+        l.title as listing_title,
+        l.images as listing_images,
+        l.city as listing_city,
+        l.country as listing_country
+      FROM bookings b
+      JOIN listings l ON b.listing_id = l.id
+      WHERE b.guest_id = $1 
+      ORDER BY b.check_in DESC`,
       [guestId]
     );
     return result.rows;

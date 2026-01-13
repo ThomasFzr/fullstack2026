@@ -11,6 +11,10 @@ export interface Booking {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   created_at: string;
   updated_at: string;
+  listing_title?: string;
+  listing_images?: string[] | string;
+  listing_city?: string;
+  listing_country?: string;
 }
 
 export interface CreateBookingData {

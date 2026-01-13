@@ -49,7 +49,29 @@ export const getMyBookings = async (
     }
 
     const bookings = await BookingModel.findByGuestId(req.user.id);
-    res.json(bookings);
+    
+    // Parser les images JSON si nécessaire
+    const formattedBookings = bookings.map((booking: any) => {
+      let images = booking.listing_images;
+      
+      // Parser images si c'est une string
+      if (typeof images === 'string') {
+        try {
+          images = JSON.parse(images);
+        } catch (e) {
+          images = [];
+        }
+      }
+      // Si c'est null ou undefined, utiliser un tableau vide
+      if (!images) images = [];
+      
+      return {
+        ...booking,
+        listing_images: images,
+      };
+    });
+    
+    res.json(formattedBookings);
   } catch (error) {
     next(error);
   }
