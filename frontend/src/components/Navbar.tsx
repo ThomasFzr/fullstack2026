@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { messageService } from '../services/message.service';
+import { bookingService } from '../services/booking.service';
 import './Navbar.css';
 
 export const Navbar = () => {
@@ -12,6 +13,13 @@ export const Navbar = () => {
     queryKey: ['unread-messages-count'],
     queryFn: messageService.getUnreadCount,
     enabled: !!user,
+    refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
+  });
+
+  const { data: pendingBookingsCount } = useQuery({
+    queryKey: ['pending-bookings-count'],
+    queryFn: bookingService.getPendingBookingsCount,
+    enabled: !!user && user.is_host,
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   });
 
@@ -33,7 +41,12 @@ export const Navbar = () => {
                 <>
                   <Link to="/my-listings">Mes annonces</Link>
                   <Link to="/listings/create">Créer une annonce</Link>
-                  <Link to="/host-bookings">Réservations reçues</Link>
+                  <Link to="/host-bookings" className="messages-link">
+                    <span className="messages-text">Réservations reçues</span>
+                    {(pendingBookingsCount ?? 0) > 0 && (
+                      <span className="notification-badge">{pendingBookingsCount}</span>
+                    )}
+                  </Link>
                 </>
               )}
               <Link to="/my-bookings">Mes réservations</Link>

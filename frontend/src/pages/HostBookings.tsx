@@ -25,6 +25,7 @@ export const HostBookings = () => {
       bookingService.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['host-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-bookings-count'] });
       alert('Statut mis à jour avec succès');
     },
     onError: (error: any) => {

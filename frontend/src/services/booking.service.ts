@@ -55,4 +55,9 @@ export const bookingService = {
     const response = await api.get('/bookings');
     return response.data;
   },
+
+  getPendingBookingsCount: async (): Promise<number> => {
+    const response = await api.get('/bookings/pending-count');
+    return response.data.count;
+  },
 };

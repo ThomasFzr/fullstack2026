@@ -61,6 +61,31 @@ export const getBookings = async (
   }
 };
 
+export const getPendingBookingsCount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return next(new AppError('Non authentifié', 401));
+    }
+
+    // Compter les réservations en attente pour les listings de l'hôte
+    const result = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM bookings b
+       JOIN listings l ON b.listing_id = l.id
+       WHERE l.host_id = $1 AND b.status = 'pending'`,
+      [req.user.id]
+    );
+
+    res.json({ count: parseInt(result.rows[0].count) || 0 });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getMyBookings = async (
   req: AuthRequest,
   res: Response,

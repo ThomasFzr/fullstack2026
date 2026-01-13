@@ -9,6 +9,7 @@ import {
   updateBookingStatus,
   cancelBooking,
   getMyBookings,
+  getPendingBookingsCount,
 } from '../../controllers/booking.controller';
 
 const router = Router();
@@ -43,6 +44,20 @@ router.get('/', getBookings);
  *         description: Liste des réservations de l'utilisateur
  */
 router.get('/my-bookings', getMyBookings);
+
+/**
+ * @swagger
+ * /api/v1/bookings/pending-count:
+ *   get:
+ *     summary: Compte les réservations en attente pour l'hôte
+ *     tags: [Bookings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Nombre de réservations en attente
+ */
+router.get('/pending-count', getPendingBookingsCount);
 
 /**
  * @swagger
