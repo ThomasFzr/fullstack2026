@@ -1,13 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { messageService, Conversation, Message } from '../services/message.service';
+import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import './Messages.css';
 
 export const Messages = () => {
+  const { user } = useAuth();
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageContent, setMessageContent] = useState('');
   const queryClient = useQueryClient();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = (instant = false) => {
+    if (instant) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const { data: conversations } = useQuery({
     queryKey: ['conversations'],
@@ -26,8 +37,15 @@ export const Messages = () => {
       setMessageContent('');
       refetchMessages();
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      setTimeout(() => scrollToBottom(false), 100);
     },
   });
+
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      scrollToBottom(true); // Scroll instantané quand on ouvre une conversation
+    }
+  }, [messages]);
 
   const handleSelectConversation = async (conversationId: number) => {
     setSelectedConversation(conversationId);
@@ -104,17 +122,20 @@ export const Messages = () => {
             <>
               <div className="messages-list">
                 {messages && messages.length > 0 ? (
-                  messages.map((message: Message) => (
-                    <div
-                      key={message.id}
-                      className={`message ${message.sender_id === 1 ? 'sent' : 'received'}`}
-                    >
-                      <div className="message-content">{message.content}</div>
-                      <div className="message-time">
-                        {format(new Date(message.created_at), 'HH:mm')}
+                  <>
+                    {messages.map((message: Message) => (
+                      <div
+                        key={message.id}
+                        className={`message ${message.sender_id === user?.id ? 'sent' : 'received'}`}
+                      >
+                        <div className="message-content">{message.content}</div>
+                        <div className="message-time">
+                          {format(new Date(message.created_at), 'HH:mm')}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </>
                 ) : (
                   <p className="empty">Aucun message</p>
                 )}
