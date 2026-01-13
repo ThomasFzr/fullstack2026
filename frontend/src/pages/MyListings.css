@@ -60,6 +60,8 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   white-space: nowrap;
+  width: auto;
+  min-width: auto;
 }
 
 .btn-outline {
@@ -73,6 +75,18 @@
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 90, 95, 0.25);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.btn-edit:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
 }
 
 .btn-danger {
@@ -123,6 +137,7 @@
   display: flex;
   flex-direction: column;
   animation: fadeInUp 0.6s ease-out backwards;
+  position: relative;
 }
 
 @keyframes fadeInUp {
@@ -141,12 +156,33 @@
   border-color: rgba(255, 90, 95, 0.2);
 }
 
+.listing-card:hover img {
+  transform: none;
+}
+
 .listing-card img {
   width: 100%;
   height: 240px;
+  min-height: 240px;
+  max-height: 240px;
   object-fit: cover;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: block;
+  flex-shrink: 0;
+}
+
+.listing-image-placeholder {
+  width: 100%;
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .listing-info {
@@ -155,6 +191,11 @@
   flex-direction: column;
   gap: 0.75rem;
   flex: 1;
+  min-height: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  background: white;
 }
 
 .listing-info h3 {
@@ -167,6 +208,8 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  visibility: visible;
+  opacity: 1;
 }
 
 .location {
@@ -176,6 +219,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  visibility: visible;
+  opacity: 1;
 }
 
 .price {
@@ -183,20 +228,36 @@
   font-weight: 700;
   color: #ff5a5f;
   margin: 0;
+  visibility: visible;
+  opacity: 1;
 }
 
 .listing-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.75rem;
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid #f0f0f0;
+  visibility: visible;
+  opacity: 1;
 }
 
 .listing-actions .btn {
-  flex: 1;
-  padding: 0.65rem 1rem;
-  font-size: 0.9rem;
+  padding: 0;
+  font-size: 0.85rem;
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  min-height: 2.75rem;
+  max-height: 2.75rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  line-height: 1;
 }
 
 /* État vide */
@@ -269,7 +330,7 @@
   }
 
   .listing-actions {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .listing-actions .btn {

@@ -11,6 +11,17 @@ export const MyListings = () => {
     queryFn: listingService.getMyListings,
   });
 
+  // Debug: vérifier les images
+  if (listings && listings.length > 0) {
+    console.log('Listings avec images:', listings.map(l => ({
+      id: l.id,
+      title: l.title,
+      images: l.images,
+      imagesType: typeof l.images,
+      imagesLength: Array.isArray(l.images) ? l.images.length : 'not array'
+    })));
+  }
+
   const deleteMutation = useMutation({
     mutationFn: listingService.delete,
     onSuccess: () => {
@@ -46,28 +57,31 @@ export const MyListings = () => {
       </div>
       {listings && listings.length > 0 ? (
         <div className="listings-grid">
-          {listings.map((listing: Listing, index: number) => (
-            <div 
-              key={listing.id} 
-              className="listing-card"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {listing.images && listing.images.length > 0 ? (
-                <img src={listing.images[0]} alt={listing.title} />
-              ) : (
-                <div style={{
-                  width: '100%',
-                  height: '240px',
-                  background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#999',
-                  fontSize: '1.2rem'
-                }}>
-                  Aucune image
-                </div>
-              )}
+          {listings.map((listing: Listing, index: number) => {
+            const firstImage = listing.images && Array.isArray(listing.images) && listing.images.length > 0 
+              ? listing.images[0] 
+              : null;
+            
+            return (
+              <div 
+                key={listing.id} 
+                className="listing-card"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {firstImage ? (
+                  <img 
+                    src={firstImage} 
+                    alt={listing.title}
+                    onError={(e) => {
+                      console.error('Erreur chargement image pour listing', listing.id, firstImage?.substring(0, 50));
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="listing-image-placeholder">
+                    <span>Aucune image</span>
+                  </div>
+                )}
               <div className="listing-info">
                 <h3>{listing.title}</h3>
                 <p className="location">
@@ -79,6 +93,9 @@ export const MyListings = () => {
                   <Link to={`/listings/${listing.id}`} className="btn btn-outline">
                     Voir
                   </Link>
+                  <Link to={`/listings/${listing.id}/edit`} className="btn btn-edit">
+                    Éditer
+                  </Link>
                   <button
                     className="btn btn-danger"
                     onClick={() => handleDelete(listing.id)}
@@ -89,7 +106,8 @@ export const MyListings = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="empty-state">

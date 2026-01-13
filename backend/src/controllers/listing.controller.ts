@@ -152,11 +152,44 @@ export const getMyListings = async (
     }
 
     // Parser les JSON fields
-    const formattedListings = listings.map((listing: any) => ({
-      ...listing,
-      images: typeof listing.images === 'string' ? JSON.parse(listing.images) : listing.images,
-      amenities: typeof listing.amenities === 'string' ? JSON.parse(listing.amenities) : listing.amenities,
-    }));
+    const formattedListings = listings.map((listing: any) => {
+      let images = listing.images;
+      let amenities = listing.amenities;
+
+      // Parser images si c'est une string
+      if (typeof images === 'string') {
+        try {
+          images = JSON.parse(images);
+        } catch (e) {
+          console.warn('Erreur parsing images pour listing', listing.id, e);
+          images = [];
+        }
+      }
+      // Si c'est null ou undefined, utiliser un tableau vide
+      if (!images || !Array.isArray(images)) {
+        images = [];
+      }
+
+      // Parser amenities si c'est une string
+      if (typeof amenities === 'string') {
+        try {
+          amenities = JSON.parse(amenities);
+        } catch (e) {
+          console.warn('Erreur parsing amenities pour listing', listing.id, e);
+          amenities = [];
+        }
+      }
+      // Si c'est null ou undefined, utiliser un tableau vide
+      if (!amenities || !Array.isArray(amenities)) {
+        amenities = [];
+      }
+
+      return {
+        ...listing,
+        images,
+        amenities,
+      };
+    });
 
     res.json(formattedListings);
   } catch (error) {

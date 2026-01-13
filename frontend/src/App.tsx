@@ -8,6 +8,7 @@ import { Register } from './pages/Register'
 import { Listings } from './pages/Listings'
 import { ListingDetail } from './pages/ListingDetail'
 import { CreateListing } from './pages/CreateListing'
+import { EditListing } from './pages/EditListing'
 import { MyListings } from './pages/MyListings'
 import { MyBookings } from './pages/MyBookings'
 import { Messages } from './pages/Messages'
@@ -32,6 +33,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <CreateListing />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/listings/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditListing />
                   </ProtectedRoute>
                 }
               />
