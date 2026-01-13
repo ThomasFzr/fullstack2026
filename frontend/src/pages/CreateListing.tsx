@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -14,19 +15,55 @@ interface ListingFormData {
   max_guests: number;
   bedrooms: number;
   bathrooms: number;
-  images: string;
   amenities: string;
   rules: string;
 }
 
 export const CreateListing = () => {
   const navigate = useNavigate();
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const { register, handleSubmit, formState: { errors } } = useForm<ListingFormData>();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const imagePromises: Promise<string>[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        const promise = new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              resolve(event.target.result as string);
+            } else {
+              reject(new Error('Erreur lors de la lecture du fichier'));
+            }
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        imagePromises.push(promise);
+      }
+    }
+
+    Promise.all(imagePromises).then((base64Images) => {
+      setSelectedImages((prev) => [...prev, ...base64Images]);
+    }).catch((error) => {
+      alert('Erreur lors du chargement des images: ' + error.message);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const mutation = useMutation({
     mutationFn: (data: ListingFormData) => listingService.create({
       ...data,
-      images: data.images ? data.images.split(',').map(url => url.trim()) : [],
+      images: selectedImages,
       amenities: data.amenities ? data.amenities.split(',').map(a => a.trim()) : [],
     }),
     onSuccess: () => {
@@ -39,6 +76,10 @@ export const CreateListing = () => {
   });
 
   const onSubmit = (data: ListingFormData) => {
+    if (selectedImages.length === 0) {
+      alert('Veuillez sélectionner au moins une image');
+      return;
+    }
     mutation.mutate(data);
   };
 
@@ -162,13 +203,37 @@ export const CreateListing = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="images">URLs des images (séparées par des virgules)</label>
+          <label htmlFor="images">Images *</label>
           <input
-            type="text"
+            type="file"
             id="images"
-            placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-            {...register('images')}
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+            className="file-input"
           />
+          <p className="file-input-hint">Sélectionnez une ou plusieurs images depuis votre ordinateur</p>
+          
+          {selectedImages.length > 0 && (
+            <div className="image-preview-container">
+              <h4>Images sélectionnées ({selectedImages.length})</h4>
+              <div className="image-preview-grid">
+                {selectedImages.map((image, index) => (
+                  <div key={index} className="image-preview-item">
+                    <img src={image} alt={`Preview ${index + 1}`} />
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={() => removeImage(index)}
+                      aria-label="Supprimer l'image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="form-group">

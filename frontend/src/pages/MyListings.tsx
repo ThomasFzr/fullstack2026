@@ -28,26 +28,52 @@ export const MyListings = () => {
     }
   };
 
-  if (isLoading) return <div>Chargement...</div>;
+  if (isLoading) {
+    return (
+      <div className="my-listings">
+        <div className="loading-state">Chargement de vos annonces...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="my-listings">
       <div className="page-header">
         <h1>Mes annonces</h1>
         <Link to="/listings/create" className="btn btn-primary">
-          Créer une annonce
+          + Créer
         </Link>
       </div>
       {listings && listings.length > 0 ? (
         <div className="listings-grid">
-          {listings.map((listing: Listing) => (
-            <div key={listing.id} className="listing-card">
-              {listing.images && listing.images.length > 0 && (
+          {listings.map((listing: Listing, index: number) => (
+            <div 
+              key={listing.id} 
+              className="listing-card"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {listing.images && listing.images.length > 0 ? (
                 <img src={listing.images[0]} alt={listing.title} />
+              ) : (
+                <div style={{
+                  width: '100%',
+                  height: '240px',
+                  background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#999',
+                  fontSize: '1.2rem'
+                }}>
+                  Aucune image
+                </div>
               )}
               <div className="listing-info">
                 <h3>{listing.title}</h3>
-                <p className="location">{listing.city}, {listing.country}</p>
+                <p className="location">
+                  <span>📍</span>
+                  <span>{listing.city}, {listing.country}</span>
+                </p>
                 <p className="price">{listing.price_per_night}€ / nuit</p>
                 <div className="listing-actions">
                   <Link to={`/listings/${listing.id}`} className="btn btn-outline">
@@ -58,7 +84,7 @@ export const MyListings = () => {
                     onClick={() => handleDelete(listing.id)}
                     disabled={deleteMutation.isPending}
                   >
-                    Supprimer
+                    {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
                   </button>
                 </div>
               </div>
@@ -67,9 +93,12 @@ export const MyListings = () => {
         </div>
       ) : (
         <div className="empty-state">
-          <p>Vous n'avez pas encore créé d'annonce</p>
+          <div className="empty-state-icon">🏠</div>
+          <h2>Commencez votre aventure</h2>
+          <p>Vous n'avez pas encore créé d'annonce.<br />Créez votre première annonce et commencez à accueillir des voyageurs !</p>
           <Link to="/listings/create" className="btn btn-primary">
-            Créer votre première annonce
+            <span>+</span>
+            <span>Créer votre première annonce</span>
           </Link>
         </div>
       )}

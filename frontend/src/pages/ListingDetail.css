@@ -47,11 +47,21 @@
 }
 
 .listing-details {
-  display: flex;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #eee;
+}
+
+.listing-details span {
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  color: #333;
 }
 
 .description,
@@ -181,6 +191,20 @@
   background-color: transparent;
   border: 2px solid #ff5a5f;
   color: #ff5a5f;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.1);
+}
+
+.btn-outline:hover {
+  background-color: #ff5a5f;
+  color: white;
+  box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-outline:focus-visible {
+  outline: 2px solid #ff5a5f;
+  outline-offset: 2px;
 }
 
 .btn:disabled {

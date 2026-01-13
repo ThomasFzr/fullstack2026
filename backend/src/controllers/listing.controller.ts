@@ -42,22 +42,28 @@ export const getListings = async (
         try {
           images = JSON.parse(images);
         } catch (e) {
+          console.warn('Erreur parsing images pour listing', listing.id, e);
           images = [];
         }
       }
       // Si c'est null ou undefined, utiliser un tableau vide
-      if (!images) images = [];
+      if (!images || !Array.isArray(images)) {
+        images = [];
+      }
 
       // Parser amenities si c'est une string
       if (typeof amenities === 'string') {
         try {
           amenities = JSON.parse(amenities);
         } catch (e) {
+          console.warn('Erreur parsing amenities pour listing', listing.id, e);
           amenities = [];
         }
       }
       // Si c'est null ou undefined, utiliser un tableau vide
-      if (!amenities) amenities = [];
+      if (!amenities || !Array.isArray(amenities)) {
+        amenities = [];
+      }
 
       return {
         ...listing,

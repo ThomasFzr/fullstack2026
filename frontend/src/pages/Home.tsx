@@ -22,6 +22,8 @@ export const Home = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['listings'],
     queryFn: () => listingService.getAll(),
+    retry: 2,
+    retryDelay: 1000,
   });
 
   return (
@@ -53,7 +55,24 @@ export const Home = () => {
           <div className="error-state">
             <div className="error-icon">⚠️</div>
             <p className="error-message">Erreur lors du chargement des annonces</p>
-            <p className="error-subtitle">Veuillez réessayer plus tard</p>
+            <p className="error-subtitle">
+              {error instanceof Error ? error.message : 'Veuillez réessayer plus tard'}
+            </p>
+            {import.meta.env.DEV && error instanceof Error && (
+              <details style={{ marginTop: '1rem', textAlign: 'left', maxWidth: '600px', margin: '1rem auto 0' }}>
+                <summary style={{ cursor: 'pointer', color: '#666' }}>Détails de l'erreur</summary>
+                <pre style={{ 
+                  marginTop: '0.5rem', 
+                  padding: '1rem', 
+                  background: '#f5f5f5', 
+                  borderRadius: '4px',
+                  fontSize: '0.875rem',
+                  overflow: 'auto'
+                }}>
+                  {error.stack || JSON.stringify(error, null, 2)}
+                </pre>
+              </details>
+            )}
           </div>
         )}
         

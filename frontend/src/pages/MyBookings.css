@@ -29,9 +29,9 @@
 }
 
 .booking-listing-image {
-  width: 200px;
+  width: 350px;
   height: 100%;
-  min-height: 200px;
+  min-height: 250px;
   overflow: hidden;
   background: #f0f0f0;
 }
