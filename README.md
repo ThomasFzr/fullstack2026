@@ -96,6 +96,19 @@ docker exec -i minibnb-postgres psql -U postgres -d minibnb < database/schema.sq
 ./setup-database.sh
 ```
 
+**Option D : Cache Redis (optionnel)**
+
+Le cache serveur améliore les performances des requêtes d'annonces. Sans Redis, l'app fonctionne normalement.
+
+```bash
+# macOS avec Homebrew
+brew install redis
+brew services start redis
+
+# Ou avec Docker
+docker run --name minibnb-redis -p 6379:6379 -d redis:7-alpine
+```
+
 > 💡 **Note** : Si vous rencontrez des erreurs, consultez `docs/INSTALLATION.md` pour plus de détails.
 
 ### 2. Configuration du Backend
@@ -201,6 +214,7 @@ L'application démarre sur `http://localhost:5173`
 ### Cache
 - ✅ Cache HTTP côté navigateur (headers Cache-Control)
 - ✅ Cache client avec React Query (5 min staleTime)
+- ✅ Cache serveur Redis pour les annonces (5 min TTL)
 
 ### Qualité
 - ✅ Validation des données (backend + frontend)
@@ -245,6 +259,7 @@ npm test
 - `JWT_ACCESS_EXPIRY` : Durée de vie du access token (défaut: 15m)
 - `JWT_REFRESH_EXPIRY` : Durée de vie du refresh token (défaut: 7d)
 - `CORS_ORIGIN` : Origine autorisée pour CORS
+- `REDIS_URL` : URL Redis pour le cache serveur (optionnel, défaut: `redis://localhost:6379`)
 
 ### Variables d'environnement Frontend
 

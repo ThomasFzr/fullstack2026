@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from './errorHandler';
+import { UserModel } from '../models/User.model';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -10,7 +11,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = (
+export const authenticate = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -36,6 +37,13 @@ export const authenticate = (
     };
 
     req.user = decoded;
+
+    // Mettre à jour le rôle depuis la base de données (évite les tokens JWT obsolètes)
+    const dbUser = await UserModel.findById(decoded.id);
+    if (dbUser) {
+      req.user.role = dbUser.role;
+    }
+
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

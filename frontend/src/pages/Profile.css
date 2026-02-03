@@ -75,6 +75,35 @@
   color: #666;
 }
 
+.become-host-confirm {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.become-host-confirm p {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.confirm-buttons .btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+}
+
+.confirm-buttons .btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
 @media (max-width: 768px) {
   .profile-card {
     grid-template-columns: 1fr;

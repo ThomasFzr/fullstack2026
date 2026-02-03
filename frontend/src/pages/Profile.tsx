@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/user.service';
@@ -12,8 +12,8 @@ interface ProfileFormData {
 
 export const Profile = () => {
   const { user, refreshUser } = useAuth();
-  const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
+  const [showBecomeHostConfirm, setShowBecomeHostConfirm] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormData>({
     defaultValues: {
@@ -36,7 +36,12 @@ export const Profile = () => {
 
   const becomeHostMutation = useMutation({
     mutationFn: userService.becomeHost,
-    onSuccess: async () => {
+    onSuccess: async (data: any) => {
+      if (data?.tokens) {
+        localStorage.setItem('access_token', data.tokens.access_token);
+        localStorage.setItem('refresh_token', data.tokens.refresh_token);
+      }
+      setShowBecomeHostConfirm(false);
       await refreshUser();
       setMessage('Vous êtes maintenant hôte !');
       setTimeout(() => setMessage(''), 3000);
@@ -51,9 +56,11 @@ export const Profile = () => {
   };
 
   const handleBecomeHost = () => {
-    if (window.confirm('Voulez-vous devenir hôte ? Vous pourrez créer et gérer des annonces.')) {
-      becomeHostMutation.mutate();
-    }
+    setShowBecomeHostConfirm(true);
+  };
+
+  const confirmBecomeHost = () => {
+    becomeHostMutation.mutate();
   };
 
   if (!user) return <div>Chargement...</div>;
@@ -108,13 +115,39 @@ export const Profile = () => {
             <strong>Hôte:</strong> {user.is_host ? 'Oui' : 'Non'}
           </p>
           {!user.is_host && (
-            <button
-              className="btn btn-primary"
-              onClick={handleBecomeHost}
-              disabled={becomeHostMutation.isPending}
-            >
-              {becomeHostMutation.isPending ? 'Traitement...' : 'Devenir hôte'}
-            </button>
+            <>
+              {showBecomeHostConfirm ? (
+                <div className="become-host-confirm">
+                  <p>Voulez-vous devenir hôte ? Vous pourrez créer et gérer des annonces.</p>
+                  <div className="confirm-buttons">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={confirmBecomeHost}
+                      disabled={becomeHostMutation.isPending}
+                    >
+                      {becomeHostMutation.isPending ? 'Traitement...' : 'Oui, devenir hôte'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setShowBecomeHostConfirm(false)}
+                      disabled={becomeHostMutation.isPending}
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleBecomeHost}
+                >
+                  Devenir hôte
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

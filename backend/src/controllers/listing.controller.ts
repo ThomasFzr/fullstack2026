@@ -4,6 +4,13 @@ import { ListingModel, CreateListingData, UpdateListingData } from '../models/Li
 import { AppError } from '../middleware/errorHandler';
 import { pool } from '../config/database';
 import { CohostModel } from '../models/Cohost.model';
+import {
+  getCachedListings,
+  setCachedListings,
+  getCachedListing,
+  setCachedListing,
+  invalidateListingsCache,
+} from '../utils/listingCache';
 
 export const getListings = async (
   req: any,
@@ -29,6 +36,12 @@ export const getListings = async (
     if (maxGuests) filters.maxGuests = parseInt(maxGuests);
     filters.limit = parseInt(limit);
     filters.offset = parseInt(offset);
+
+    // Vérifier le cache Redis
+    const cached = await getCachedListings(filters);
+    if (cached) {
+      return res.json(cached);
+    }
 
     const listings = await ListingModel.findAll(filters);
 
@@ -72,10 +85,15 @@ export const getListings = async (
       };
     });
 
-    res.json({
+    const response = {
       listings: formattedListings,
       total: formattedListings.length,
-    });
+    };
+
+    // Mettre en cache
+    await setCachedListings(filters, response);
+
+    res.json(response);
   } catch (error: any) {
     console.error('Erreur dans getListings:', {
       message: error?.message,
@@ -99,6 +117,12 @@ export const getListingById = async (
     if (isNaN(listingId)) {
       return next(new AppError('ID invalide', 400, 'INVALID_ID'));
     }
+
+    // Vérifier le cache Redis
+    const cached = await getCachedListing(listingId);
+    if (cached) {
+      return res.json(cached);
+    }
     
     const listing = await ListingModel.findById(listingId);
 
@@ -112,6 +136,9 @@ export const getListingById = async (
       images: typeof listing.images === 'string' ? JSON.parse(listing.images) : listing.images,
       amenities: typeof listing.amenities === 'string' ? JSON.parse(listing.amenities) : listing.amenities,
     };
+
+    // Mettre en cache
+    await setCachedListing(listingId, formattedListing);
 
     res.json(formattedListing);
   } catch (error) {
@@ -225,6 +252,9 @@ export const createListing = async (
 
     const listing = await ListingModel.create(listingData);
 
+    // Invalider le cache des listings
+    await invalidateListingsCache();
+
     // Parser les JSON fields
     const formattedListing = {
       ...listing,
@@ -296,6 +326,9 @@ export const updateListing = async (
 
     const updated = await ListingModel.update(listingId, updateData);
 
+    // Invalider le cache des listings
+    await invalidateListingsCache(listingId);
+
     // Parser les JSON fields
     const formattedListing = {
       ...updated,
@@ -341,6 +374,9 @@ export const deleteListing = async (
     }
 
     await ListingModel.delete(listingId);
+
+    // Invalider le cache des listings
+    await invalidateListingsCache(listingId);
 
     res.json({
       message: 'Annonce supprimée avec succès',
