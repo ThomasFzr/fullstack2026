@@ -1,9 +1,38 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { register, login, refreshToken } from '../../controllers/auth.controller';
+import { register, login, refreshToken, githubAuth, githubCallback } from '../../controllers/auth.controller';
 import { validate } from '../../middleware/validation.middleware';
 
 const router = Router();
+
+/**
+ * @swagger
+ * /api/v1/auth/github:
+ *   get:
+ *     summary: Connexion avec GitHub (redirection OAuth)
+ *     tags: [Auth]
+ *     responses:
+ *       302:
+ *         description: Redirection vers GitHub
+ */
+router.get('/github', githubAuth);
+
+/**
+ * @swagger
+ * /api/v1/auth/github/callback:
+ *   get:
+ *     summary: Callback GitHub OAuth
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *     responses:
+ *       302:
+ *         description: Redirection vers le frontend avec tokens
+ */
+router.get('/github/callback', githubCallback);
 
 /**
  * @swagger

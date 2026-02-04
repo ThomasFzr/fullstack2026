@@ -96,6 +96,12 @@ docker exec -i minibnb-postgres psql -U postgres -d minibnb < database/schema.sq
 ./setup-database.sh
 ```
 
+**Migration GitHub OAuth (pour connexion avec GitHub)**
+
+```bash
+psql -d minibnb -f database/migrations/001_add_github_oauth.sql
+```
+
 **Option D : Cache Redis (optionnel)**
 
 Le cache serveur améliore les performances des requêtes d'annonces. Sans Redis, l'app fonctionne normalement.
@@ -166,6 +172,7 @@ L'application démarre sur `http://localhost:5173`
 
 ### Authentification
 - ✅ Inscription et connexion utilisateurs
+- ✅ Connexion avec GitHub (OAuth)
 - ✅ JWT avec access tokens (15 min) et refresh tokens (7 jours)
 - ✅ Gestion automatique du refresh token
 
@@ -260,6 +267,8 @@ npm test
 - `JWT_REFRESH_EXPIRY` : Durée de vie du refresh token (défaut: 7d)
 - `CORS_ORIGIN` : Origine autorisée pour CORS
 - `REDIS_URL` : URL Redis pour le cache serveur (optionnel, défaut: `redis://localhost:6379`)
+- `GITHUB_CLIENT_ID` : Client ID de l'app GitHub OAuth
+- `GITHUB_CLIENT_SECRET` : Client Secret de l'app GitHub OAuth
 
 ### Variables d'environnement Frontend
 

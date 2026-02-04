@@ -9,11 +9,12 @@ export enum UserRole {
 export interface User {
   id: number;
   email: string;
-  password_hash: string;
+  password_hash: string | null;
   first_name: string;
   last_name: string;
   role: UserRole;
   is_host: boolean;
+  github_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -36,6 +37,14 @@ export class UserModel {
     const result = await pool.query(
       'SELECT * FROM users WHERE email = $1',
       [email]
+    );
+    return result.rows[0] || null;
+  }
+
+  static async findByGithubId(githubId: string): Promise<User | null> {
+    const result = await pool.query(
+      'SELECT * FROM users WHERE github_id = $1',
+      [githubId]
     );
     return result.rows[0] || null;
   }
@@ -102,6 +111,30 @@ export class UserModel {
     const result = await pool.query(
       'UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
       [role, id]
+    );
+    return result.rows[0];
+  }
+
+  static async createFromGithub(data: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    github_id: string;
+    password_hash: string;
+  }): Promise<User> {
+    const result = await pool.query(
+      `INSERT INTO users (email, password_hash, first_name, last_name, role, is_host, github_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [
+        data.email,
+        data.password_hash,
+        data.first_name,
+        data.last_name,
+        UserRole.USER,
+        false,
+        data.github_id,
+      ]
     );
     return result.rows[0];
   }

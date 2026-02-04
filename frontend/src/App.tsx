@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar'
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
+import { AuthCallback } from './pages/AuthCallback'
 import { Listings } from './pages/Listings'
 import { ListingDetail } from './pages/ListingDetail'
 import { CreateListing } from './pages/CreateListing'
@@ -26,6 +27,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/register" element={<Navigate to="/login" replace />} />
               <Route path="/listings" element={<Listings />} />
               <Route path="/listings/:id" element={<ListingDetail />} />
