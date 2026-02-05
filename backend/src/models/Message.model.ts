@@ -7,6 +7,8 @@ export interface Message {
   content: string;
   created_at: Date;
   read_at: Date | null;
+  sender_name?: string;
+  sender_role?: string;
 }
 
 export interface Conversation {
@@ -92,7 +94,13 @@ export class MessageModel {
     conversationId: number
   ): Promise<Message[]> {
     const result = await pool.query(
-      'SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC',
+      `SELECT m.*, 
+              CONCAT(u.first_name, ' ', u.last_name) as sender_name,
+              u.role as sender_role
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE m.conversation_id = $1 
+       ORDER BY m.created_at ASC`,
       [conversationId]
     );
     return result.rows;

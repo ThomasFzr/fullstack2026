@@ -111,9 +111,6 @@ export const Profile = () => {
             {user.role === 'host' && 'Hôte'}
             {user.role === 'cohost' && 'Co-hôte'}
           </p>
-          <p>
-            <strong>Hôte:</strong> {user.is_host ? 'Oui' : 'Non'}
-          </p>
           {!user.is_host && (
             <>
               {showBecomeHostConfirm ? (

@@ -121,6 +121,17 @@ export const getListingById = async (
     // Vérifier le cache Redis
     const cached = await getCachedListing(listingId);
     if (cached) {
+      // Si l'utilisateur est authentifié, vérifier s'il est co-hôte
+      if (req.user && req.user.role === 'cohost') {
+        const permission = await CohostModel.findPermission(listingId, req.user.id);
+        if (permission) {
+          cached.cohost_permissions = {
+            can_edit_listing: permission.can_edit_listing,
+            can_manage_bookings: permission.can_manage_bookings,
+            can_respond_messages: permission.can_respond_messages,
+          };
+        }
+      }
       return res.json(cached);
     }
     
@@ -131,11 +142,23 @@ export const getListingById = async (
     }
 
     // Parser les JSON fields
-    const formattedListing = {
+    const formattedListing: any = {
       ...listing,
       images: typeof listing.images === 'string' ? JSON.parse(listing.images) : listing.images,
       amenities: typeof listing.amenities === 'string' ? JSON.parse(listing.amenities) : listing.amenities,
     };
+
+    // Si l'utilisateur est authentifié, vérifier s'il est co-hôte
+    if (req.user && req.user.role === 'cohost') {
+      const permission = await CohostModel.findPermission(listingId, req.user.id);
+      if (permission) {
+        formattedListing.cohost_permissions = {
+          can_edit_listing: permission.can_edit_listing,
+          can_manage_bookings: permission.can_manage_bookings,
+          can_respond_messages: permission.can_respond_messages,
+        };
+      }
+    }
 
     // Mettre en cache
     await setCachedListing(listingId, formattedListing);
@@ -157,13 +180,23 @@ export const getMyListings = async (
     }
 
     let listings;
+    let cohostPermissionsMap = new Map();
 
     if (req.user.role === 'host') {
       listings = await ListingModel.findByHostId(req.user.id);
     } else if (req.user.role === 'cohost') {
-      // Récupérer les listings où l'utilisateur est co-hôte
+      // Récupérer les listings où l'utilisateur est co-hôte avec leurs permissions
       const cohostPermissions = await CohostModel.findByCohostId(req.user.id);
       const listingIds = cohostPermissions.map((p) => p.listing_id);
+      
+      // Créer un map des permissions par listing_id
+      cohostPermissions.forEach(p => {
+        cohostPermissionsMap.set(p.listing_id, {
+          can_edit_listing: p.can_edit_listing,
+          can_manage_bookings: p.can_manage_bookings,
+          can_respond_messages: p.can_respond_messages,
+        });
+      });
       
       if (listingIds.length === 0) {
         return res.json([]);
@@ -215,6 +248,8 @@ export const getMyListings = async (
         ...listing,
         images,
         amenities,
+        // Ajouter les permissions si c'est un co-hôte
+        cohost_permissions: cohostPermissionsMap.get(listing.id) || null,
       };
     });
 

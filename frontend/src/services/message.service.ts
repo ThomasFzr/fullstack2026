@@ -19,6 +19,8 @@ export interface Message {
   content: string;
   created_at: string;
   read_at: string | null;
+  sender_name?: string;
+  sender_role?: string;
 }
 
 export const messageService = {

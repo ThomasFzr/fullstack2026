@@ -116,6 +116,17 @@
   color: #666;
 }
 
+.info-message {
+  background: #f0f8ff;
+  border: 1px solid #b3d9ff;
+  color: #0066cc;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}
+
 .booking-form {
   margin-top: 1.5rem;
 }

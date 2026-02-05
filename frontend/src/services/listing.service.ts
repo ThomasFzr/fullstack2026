@@ -1,5 +1,11 @@
 import api from './api';
 
+export interface CohostPermissions {
+  can_edit_listing: boolean;
+  can_manage_bookings: boolean;
+  can_respond_messages: boolean;
+}
+
 export interface Listing {
   id: number;
   host_id: number;
@@ -17,6 +23,7 @@ export interface Listing {
   rules?: string;
   created_at: string;
   updated_at: string;
+  cohost_permissions?: CohostPermissions | null;
 }
 
 export interface ListingFilters {

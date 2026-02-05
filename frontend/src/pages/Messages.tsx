@@ -136,6 +136,18 @@ export const Messages = () => {
                         key={message.id}
                         className={`message ${message.sender_id === user?.id ? 'sent' : 'received'}`}
                       >
+                        <div className="message-header">
+                          <span className="message-sender">
+                            {message.sender_name}
+                            {message.sender_role && (
+                              <span className="message-role">
+                                {message.sender_role === 'host' ? ' (Hôte)' : 
+                                 message.sender_role === 'cohost' ? ' (Co-hôte)' : 
+                                 ' (Invité)'}
+                              </span>
+                            )}
+                          </span>
+                        </div>
                         <div className="message-content">{message.content}</div>
                         <div className="message-time">
                           {format(new Date(message.created_at), 'HH:mm')}

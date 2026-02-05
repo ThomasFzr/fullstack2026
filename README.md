@@ -76,20 +76,6 @@ createdb minibnb
 psql minibnb < database/schema.sql
 ```
 
-**Option C : Utiliser Docker**
-
-```bash
-# Démarrer PostgreSQL dans Docker
-docker run --name minibnb-postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=minibnb \
-  -p 5432:5432 \
-  -d postgres:15
-
-# Exécuter le schéma
-docker exec -i minibnb-postgres psql -U postgres -d minibnb < database/schema.sql
-```
-
 **Script d'aide automatique :**
 
 ```bash

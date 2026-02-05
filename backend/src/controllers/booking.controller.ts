@@ -16,23 +16,48 @@ export const getBookings = async (
       return next(new AppError('Non authentifié', 401));
     }
 
-    // Récupérer les bookings pour les listings de l'hôte avec les infos de listing
-    const result = await pool.query(
-      `SELECT 
-        b.*,
-        l.title as listing_title,
-        l.images as listing_images,
-        l.city as listing_city,
-        l.country as listing_country,
-        u.first_name || ' ' || u.last_name as guest_name,
-        u.email as guest_email
-      FROM bookings b
-      JOIN listings l ON b.listing_id = l.id
-      JOIN users u ON b.guest_id = u.id
-      WHERE l.host_id = $1
-      ORDER BY b.check_in DESC`,
-      [req.user.id]
-    );
+    let result;
+
+    if (req.user.role === 'host') {
+      // Récupérer les bookings pour les listings de l'hôte
+      result = await pool.query(
+        `SELECT 
+          b.*,
+          l.title as listing_title,
+          l.images as listing_images,
+          l.city as listing_city,
+          l.country as listing_country,
+          u.first_name || ' ' || u.last_name as guest_name,
+          u.email as guest_email
+        FROM bookings b
+        JOIN listings l ON b.listing_id = l.id
+        JOIN users u ON b.guest_id = u.id
+        WHERE l.host_id = $1
+        ORDER BY b.check_in DESC`,
+        [req.user.id]
+      );
+    } else if (req.user.role === 'cohost') {
+      // Récupérer les bookings pour les listings où l'utilisateur est co-hôte avec can_manage_bookings
+      result = await pool.query(
+        `SELECT 
+          b.*,
+          l.title as listing_title,
+          l.images as listing_images,
+          l.city as listing_city,
+          l.country as listing_country,
+          u.first_name || ' ' || u.last_name as guest_name,
+          u.email as guest_email
+        FROM bookings b
+        JOIN listings l ON b.listing_id = l.id
+        JOIN users u ON b.guest_id = u.id
+        JOIN cohost_permissions cp ON cp.listing_id = l.id
+        WHERE cp.cohost_id = $1 AND cp.can_manage_bookings = true
+        ORDER BY b.check_in DESC`,
+        [req.user.id]
+      );
+    } else {
+      return next(new AppError('Accès refusé', 403));
+    }
 
     // Parser les images JSON si nécessaire
     const formattedBookings = result.rows.map((booking: any) => {
@@ -71,14 +96,30 @@ export const getPendingBookingsCount = async (
       return next(new AppError('Non authentifié', 401));
     }
 
-    // Compter les réservations en attente pour les listings de l'hôte
-    const result = await pool.query(
-      `SELECT COUNT(*) as count
-       FROM bookings b
-       JOIN listings l ON b.listing_id = l.id
-       WHERE l.host_id = $1 AND b.status = 'pending'`,
-      [req.user.id]
-    );
+    let result;
+
+    if (req.user.role === 'host') {
+      // Compter les réservations en attente pour les listings de l'hôte
+      result = await pool.query(
+        `SELECT COUNT(*) as count
+         FROM bookings b
+         JOIN listings l ON b.listing_id = l.id
+         WHERE l.host_id = $1 AND b.status = 'pending'`,
+        [req.user.id]
+      );
+    } else if (req.user.role === 'cohost') {
+      // Compter les réservations en attente pour les listings où l'utilisateur est co-hôte avec can_manage_bookings
+      result = await pool.query(
+        `SELECT COUNT(*) as count
+         FROM bookings b
+         JOIN listings l ON b.listing_id = l.id
+         JOIN cohost_permissions cp ON cp.listing_id = l.id
+         WHERE cp.cohost_id = $1 AND cp.can_manage_bookings = true AND b.status = 'pending'`,
+        [req.user.id]
+      );
+    } else {
+      return res.json({ count: 0 });
+    }
 
     res.json({ count: parseInt(result.rows[0].count) || 0 });
   } catch (error) {
@@ -188,6 +229,14 @@ export const createBooking = async (
     // Vérifier que l'utilisateur ne réserve pas sa propre annonce
     if (listing.host_id === req.user.id) {
       return next(new AppError('Vous ne pouvez pas réserver votre propre annonce', 400));
+    }
+
+    // Vérifier que l'utilisateur n'est pas co-hôte de cette annonce
+    if (req.user.role === 'cohost') {
+      const permission = await CohostModel.findPermission(listing_id, req.user.id);
+      if (permission) {
+        return next(new AppError('Vous ne pouvez pas réserver une annonce dont vous êtes co-hôte', 400));
+      }
     }
 
     // Vérifier le nombre de guests

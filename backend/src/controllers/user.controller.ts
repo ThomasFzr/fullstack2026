@@ -91,6 +91,37 @@ export const becomeHost = async (
   }
 };
 
+export const searchUsers = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user) {
+      return next(new AppError('Non authentifié', 401));
+    }
+
+    const { q } = req.query;
+
+    if (!q || typeof q !== 'string' || q.length < 3) {
+      return next(new AppError('La recherche doit contenir au moins 3 caractères', 400));
+    }
+
+    // Rechercher des utilisateurs par email
+    const result = await pool.query(
+      `SELECT id, email, first_name, last_name, role, is_host 
+       FROM users 
+       WHERE email ILIKE $1 
+       LIMIT 10`,
+      [`%${q}%`]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getCohosts = async (
   req: AuthRequest,
   res: Response,
@@ -101,21 +132,40 @@ export const getCohosts = async (
       return next(new AppError('Non authentifié', 401));
     }
 
-    // Récupérer tous les listings de l'hôte
-    const listingsResult = await pool.query(
-      'SELECT id FROM listings WHERE host_id = $1',
+    // Récupérer tous les co-hôtes pour les listings de l'hôte avec les informations des utilisateurs
+    const result = await pool.query(
+      `SELECT 
+        cp.id, cp.listing_id, cp.host_id, cp.cohost_id,
+        cp.can_edit_listing, cp.can_manage_bookings, cp.can_respond_messages,
+        cp.created_at,
+        u.id as user_id, u.email, u.first_name, u.last_name, u.role, u.is_host
+      FROM cohost_permissions cp
+      JOIN listings l ON cp.listing_id = l.id
+      LEFT JOIN users u ON cp.cohost_id = u.id
+      WHERE l.host_id = $1
+      ORDER BY cp.created_at DESC`,
       [req.user.id]
     );
-    const listingIds = listingsResult.rows.map((row: any) => row.id);
 
-    if (listingIds.length === 0) {
-      return res.json([]);
-    }
-
-    // Récupérer tous les co-hôtes pour ces listings
-    const cohosts = await CohostModel.findByListingId(listingIds[0]);
-    // Pour simplifier, on récupère pour le premier listing
-    // En production, il faudrait agréger tous les co-hôtes
+    // Formater les résultats pour inclure les informations du co-hôte
+    const cohosts = result.rows.map((row: any) => ({
+      id: row.id,
+      listing_id: row.listing_id,
+      host_id: row.host_id,
+      cohost_id: row.cohost_id,
+      can_edit_listing: row.can_edit_listing,
+      can_manage_bookings: row.can_manage_bookings,
+      can_respond_messages: row.can_respond_messages,
+      created_at: row.created_at,
+      cohost: row.user_id ? {
+        id: row.user_id,
+        email: row.email,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        role: row.role,
+        is_host: row.is_host,
+      } : null,
+    }));
 
     res.json(cohosts);
   } catch (error) {
@@ -244,7 +294,20 @@ export const deleteCohost = async (
       return next(new AppError('Vous n\'êtes pas autorisé', 403));
     }
 
+    const cohostUserId = permission.rows[0].cohost_id;
+
     await CohostModel.delete(parseInt(id));
+
+    // Vérifier si l'utilisateur est encore co-hôte d'autres annonces
+    const remainingPermissions = await pool.query(
+      'SELECT COUNT(*) as count FROM cohost_permissions WHERE cohost_id = $1',
+      [cohostUserId]
+    );
+
+    // Si l'utilisateur n'est plus co-hôte d'aucune annonce, réinitialiser son rôle à 'guest'
+    if (parseInt(remainingPermissions.rows[0].count) === 0) {
+      await UserModel.updateRole(cohostUserId, 'guest' as any);
+    }
 
     res.json({
       message: 'Co-hôte supprimé avec succès',

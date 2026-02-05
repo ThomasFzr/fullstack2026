@@ -65,6 +65,8 @@ export const ListingDetail = () => {
   if (isLoading) return <div>Chargement...</div>;
   if (!listing) return <div>Annonce non trouvée</div>;
 
+  const isOwner = user?.id === listing.host_id;
+
   const nights = checkIn && checkOut
     ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
@@ -113,7 +115,7 @@ export const ListingDetail = () => {
       <div className="booking-sidebar">
         <div className="price-box">
           <div className="price">{listing.price_per_night}€ <span>/ nuit</span></div>
-          {user && user.id !== listing.host_id && (
+          {user && !isOwner && (
             <>
               {!showBookingForm ? (
                 <button className="btn btn-primary" onClick={() => setShowBookingForm(true)}>
@@ -180,6 +182,11 @@ export const ListingDetail = () => {
                 Contacter l'hôte
               </button>
             </>
+          )}
+          {user && isOwner && (
+            <div className="info-message">
+              Vous êtes le propriétaire de cette annonce
+            </div>
           )}
         </div>
       </div>

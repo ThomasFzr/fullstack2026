@@ -54,6 +54,51 @@ export const authenticate = async (
   }
 };
 
+// Middleware d'authentification optionnelle (n'échoue pas si pas de token)
+export const optionalAuthenticate = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // Pas de token, on continue sans authentification
+      return next();
+    }
+
+    const token = authHeader.substring(7);
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      return next();
+    }
+
+    try {
+      const decoded = jwt.verify(token, secret) as {
+        id: number;
+        email: string;
+        role: string;
+      };
+
+      req.user = decoded;
+
+      // Mettre à jour le rôle depuis la base de données
+      const dbUser = await UserModel.findById(decoded.id);
+      if (dbUser) {
+        req.user.role = dbUser.role;
+      }
+    } catch {
+      // Token invalide, on continue sans authentification
+    }
+
+    next();
+  } catch (error) {
+    next();
+  }
+};
+
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {

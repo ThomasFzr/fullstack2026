@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, query } from 'express-validator';
-import { authenticate, authorize, AuthRequest } from '../../middleware/auth.middleware';
+import { authenticate, authorize, optionalAuthenticate, AuthRequest } from '../../middleware/auth.middleware';
 import { cacheMiddleware } from '../../middleware/cache.middleware';
 import { validate } from '../../middleware/validation.middleware';
 import {
@@ -92,7 +92,7 @@ router.get('/my-listings', authenticate, getMyListings);
  *       404:
  *         description: Annonce non trouvée
  */
-router.get('/:id', cacheMiddleware(300), getListingById);
+router.get('/:id', optionalAuthenticate, cacheMiddleware(300), getListingById);
 
 // Routes protégées
 router.use(authenticate);

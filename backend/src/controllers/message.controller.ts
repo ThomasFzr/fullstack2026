@@ -4,6 +4,7 @@ import { MessageModel, CreateMessageData } from '../models/Message.model';
 import { ListingModel } from '../models/Listing.model';
 import { AppError } from '../middleware/errorHandler';
 import { CohostModel } from '../models/Cohost.model';
+import { pool } from '../config/database';
 
 export const getConversations = async (
   req: AuthRequest,
@@ -15,9 +16,46 @@ export const getConversations = async (
       return next(new AppError('Non authentifié', 401));
     }
 
-    const conversations = await MessageModel.findConversationsByUserId(
-      req.user.id
-    );
+    // Récupérer toujours les conversations personnelles de l'utilisateur (en tant que guest ou host)
+    let conversations = await MessageModel.findConversationsByUserId(req.user.id);
+
+    // Si l'utilisateur est co-hôte, ajouter les conversations des listings où il a can_respond_messages
+    if (req.user.role === 'cohost') {
+      const cohostPermissions = await CohostModel.findByCohostId(req.user.id);
+      const listingIdsWithMessagePermission = cohostPermissions
+        .filter(p => p.can_respond_messages)
+        .map(p => p.listing_id);
+
+      if (listingIdsWithMessagePermission.length > 0) {
+        // Ajouter les conversations où l'utilisateur est co-hôte
+        const cohostConversationsResult = await pool.query(
+          `SELECT c.*, l.title as listing_title,
+                  CONCAT(u1.first_name, ' ', u1.last_name) as other_user_name,
+                  (SELECT COUNT(*) 
+                   FROM messages m 
+                   WHERE m.conversation_id = c.id 
+                     AND m.sender_id != $1 
+                     AND m.read_at IS NULL
+                  ) as unread_count
+           FROM conversations c
+           JOIN listings l ON c.listing_id = l.id
+           JOIN users u1 ON c.guest_id = u1.id
+           WHERE c.listing_id = ANY($2::int[])
+             AND c.host_id != $1
+           ORDER BY c.updated_at DESC`,
+          [req.user.id, listingIdsWithMessagePermission]
+        );
+
+        // Fusionner et dédupliquer les conversations
+        const conversationMap = new Map();
+        [...conversations, ...cohostConversationsResult.rows].forEach(conv => {
+          if (!conversationMap.has(conv.id)) {
+            conversationMap.set(conv.id, conv);
+          }
+        });
+        conversations = Array.from(conversationMap.values());
+      }
+    }
 
     res.json(conversations);
   } catch (error) {

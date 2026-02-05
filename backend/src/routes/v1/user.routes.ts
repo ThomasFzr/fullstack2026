@@ -8,6 +8,7 @@ import {
   createCohost,
   updateCohost,
   deleteCohost,
+  searchUsers,
 } from '../../controllers/user.controller';
 
 const router = Router();
@@ -56,6 +57,27 @@ router.put('/profile', updateProfile);
  *         description: Statut hôte activé
  */
 router.post('/become-host', becomeHost);
+
+/**
+ * @swagger
+ * /api/v1/users/search:
+ *   get:
+ *     summary: Rechercher des utilisateurs par email
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Email à rechercher
+ *     responses:
+ *       200:
+ *         description: Liste des utilisateurs trouvés
+ */
+router.get('/search', authorize('host'), searchUsers);
 
 /**
  * @swagger

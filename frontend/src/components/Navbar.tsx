@@ -19,9 +19,19 @@ export const Navbar = () => {
   const { data: pendingBookingsCount } = useQuery({
     queryKey: ['pending-bookings-count'],
     queryFn: bookingService.getPendingBookingsCount,
-    enabled: !!user && user.is_host,
+    enabled: !!user && (user.is_host || user.role === 'cohost'),
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   });
+
+  // Pour les co-hôtes, vérifier s'ils ont la permission can_manage_bookings
+  const { data: hostBookings } = useQuery({
+    queryKey: ['host-bookings-check'],
+    queryFn: bookingService.getHostBookings,
+    enabled: !!user && user.role === 'cohost' && !user.is_host,
+    staleTime: 60000,
+  });
+
+  const cohostHasBookingPermission = user?.is_host || (user?.role === 'cohost' && hostBookings && hostBookings.length > 0);
 
   const handleLogout = () => {
     logout();
@@ -37,16 +47,18 @@ export const Navbar = () => {
         <div className="navbar-links">
           {user ? (
             <>
-              {user.is_host && (
+              {(user.is_host || user.role === 'cohost') && (
                 <>
                   <Link to="/my-listings">Mes annonces</Link>
-                  <Link to="/listings/create">Créer une annonce</Link>
-                  <Link to="/host-bookings" className="messages-link">
-                    <span className="messages-text">Réservations reçues</span>
-                    {(pendingBookingsCount ?? 0) > 0 && (
-                      <span className="notification-badge">{pendingBookingsCount}</span>
-                    )}
-                  </Link>
+                  {user.is_host && <Link to="/listings/create">Créer une annonce</Link>}
+                  {cohostHasBookingPermission && (
+                    <Link to="/host-bookings" className="messages-link">
+                      <span className="messages-text">Réservations reçues</span>
+                      {(pendingBookingsCount ?? 0) > 0 && (
+                        <span className="notification-badge">{pendingBookingsCount}</span>
+                      )}
+                    </Link>
+                  )}
                 </>
               )}
               <Link to="/my-bookings">Mes réservations</Link>

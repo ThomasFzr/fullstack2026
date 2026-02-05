@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { bookingService, Booking } from '../services/booking.service';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
 import './HostBookings.css';
 
 export const HostBookings = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  if (!user || !user.is_host) {
+  if (!user || (!user.is_host && user.role !== 'cohost')) {
     return <Navigate to="/" replace />;
   }
 
@@ -19,6 +18,11 @@ export const HostBookings = () => {
     queryKey: ['host-bookings'],
     queryFn: bookingService.getHostBookings,
   });
+
+  // Si le co-hôte n'a pas de réservations (pas de permission can_manage_bookings)
+  if (!isLoading && user.role === 'cohost' && (!bookings || bookings.length === 0)) {
+    return <Navigate to="/" replace />;
+  }
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: Booking['status'] }) =>
