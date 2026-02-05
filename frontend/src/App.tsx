@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Navbar } from './components/Navbar'
 import { Home } from './pages/Home'
@@ -15,22 +16,25 @@ import { MyBookings } from './pages/MyBookings'
 import { HostBookings } from './pages/HostBookings'
 import { Messages } from './pages/Messages'
 import { Profile } from './pages/Profile'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import './App.css'
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="app">
-          <Navbar />
-          <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/register" element={<Navigate to="/login" replace />} />
-              <Route path="/listings" element={<Listings />} />
-              <Route path="/listings/:id" element={<ListingDetail />} />
+      <ToastProvider>
+        <Router>
+          <div className="app">
+            <Navbar />
+            <main className="main-content">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/register" element={<Navigate to="/login" replace />} />
+                <Route path="/listings" element={<Listings />} />
+                <Route path="/listings/:id" element={<ListingDetail />} />
               <Route
                 path="/listings/create"
                 element={
@@ -91,7 +95,9 @@ function App() {
             </Routes>
           </main>
         </div>
+        <ToastContainer />
       </Router>
+      </ToastProvider>
     </AuthProvider>
   )
 }

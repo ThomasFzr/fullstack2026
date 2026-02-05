@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { listingService } from '../services/listing.service';
+import { useToast } from '../contexts/ToastContext';
 import './CreateListing.css';
 
 interface ListingFormData {
@@ -22,6 +23,7 @@ interface ListingFormData {
 export const EditListing = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toast = useToast();
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const { data: listing, isLoading } = useQuery({
@@ -81,7 +83,7 @@ export const EditListing = () => {
     Promise.all(imagePromises).then((base64Images) => {
       setSelectedImages((prev) => [...prev, ...base64Images]);
     }).catch((error) => {
-      alert('Erreur lors du chargement des images: ' + error.message);
+      toast.error('Erreur lors du chargement des images: ' + error.message);
     });
   };
 
@@ -96,17 +98,17 @@ export const EditListing = () => {
       amenities: data.amenities ? data.amenities.split(',').map(a => a.trim()) : [],
     }),
     onSuccess: () => {
-      alert('Annonce mise à jour avec succès !');
+      toast.success('Annonce mise à jour avec succès !');
       navigate('/my-listings');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
     },
   });
 
   const onSubmit = (data: ListingFormData) => {
     if (selectedImages.length === 0) {
-      alert('Veuillez sélectionner au moins une image');
+      toast.warning('Veuillez sélectionner au moins une image');
       return;
     }
     mutation.mutate(data);

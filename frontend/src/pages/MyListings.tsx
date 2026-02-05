@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { listingService, Listing } from '../services/listing.service';
 import ManageCohosts from '../components/ManageCohosts';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import './MyListings.css';
 
 interface ListingCardProps {
@@ -65,6 +66,7 @@ const ListingCard: React.FC<ListingCardProps> = ({ listing, index, onDelete, isD
 export const MyListings = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const toast = useToast();
   const [cohostModalOpen, setCohostModalOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState<{ id: number; title: string } | null>(null);
 
@@ -77,10 +79,10 @@ export const MyListings = () => {
     mutationFn: listingService.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-listings'] });
-      alert('Annonce supprimée avec succès');
+      toast.success('Annonce supprimée avec succès');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la suppression');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la suppression');
     },
   });
 

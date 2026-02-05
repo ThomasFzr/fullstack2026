@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { userService, User } from '../services/user.service';
+import { useToast } from '../contexts/ToastContext';
 import './ManageCohosts.css';
 
 interface ManageCoHostsProps {
@@ -22,6 +23,7 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
   const [editingPermissionId, setEditingPermissionId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // Récupérer les co-hôtes existants
   const { data: cohosts = [], isLoading } = useQuery({
@@ -45,10 +47,10 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
         can_manage_bookings: false,
         can_respond_messages: false,
       });
-      alert('Co-hôte ajouté avec succès !');
+      toast.success('Co-hôte ajouté avec succès !');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de l\'ajout du co-hôte');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de l\'ajout du co-hôte');
     },
   });
 
@@ -59,10 +61,10 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cohosts', listingId] });
       setEditingPermissionId(null);
-      alert('Permissions mises à jour !');
+      toast.success('Permissions mises à jour !');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
     },
   });
 
@@ -71,17 +73,17 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
     mutationFn: userService.deleteCohost,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cohosts', listingId] });
-      alert('Co-hôte retiré avec succès !');
+      toast.success('Co-hôte retiré avec succès !');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la suppression');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la suppression');
     },
   });
 
   // Rechercher des utilisateurs
   const handleSearch = async () => {
     if (searchQuery.length < 3) {
-      alert('Veuillez entrer au moins 3 caractères');
+      toast.warning('Veuillez entrer au moins 3 caractères');
       return;
     }
 
@@ -90,7 +92,7 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
       const results = await userService.searchUsers(searchQuery);
       setSearchResults(results);
     } catch (error: any) {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la recherche');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la recherche');
     } finally {
       setIsSearching(false);
     }
@@ -99,7 +101,7 @@ const ManageCohosts: React.FC<ManageCoHostsProps> = ({ listingId, listingTitle, 
   // Ajouter un co-hôte
   const handleAddCohost = () => {
     if (!selectedUserId) {
-      alert('Veuillez sélectionner un utilisateur');
+      toast.warning('Veuillez sélectionner un utilisateur');
       return;
     }
 

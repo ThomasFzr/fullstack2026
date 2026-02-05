@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { listingService } from '../services/listing.service';
+import { useToast } from '../contexts/ToastContext';
 import './CreateListing.css';
 
 interface ListingFormData {
@@ -21,6 +22,7 @@ interface ListingFormData {
 
 export const CreateListing = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const { register, handleSubmit, formState: { errors } } = useForm<ListingFormData>();
 
@@ -52,7 +54,7 @@ export const CreateListing = () => {
     Promise.all(imagePromises).then((base64Images) => {
       setSelectedImages((prev) => [...prev, ...base64Images]);
     }).catch((error) => {
-      alert('Erreur lors du chargement des images: ' + error.message);
+      toast.error('Erreur lors du chargement des images: ' + error.message);
     });
   };
 
@@ -67,17 +69,17 @@ export const CreateListing = () => {
       amenities: data.amenities ? data.amenities.split(',').map(a => a.trim()) : [],
     }),
     onSuccess: () => {
-      alert('Annonce créée avec succès !');
+      toast.success('Annonce créée avec succès !');
       navigate('/my-listings');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la création');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la création');
     },
   });
 
   const onSubmit = (data: ListingFormData) => {
     if (selectedImages.length === 0) {
-      alert('Veuillez sélectionner au moins une image');
+      toast.warning('Veuillez sélectionner au moins une image');
       return;
     }
     mutation.mutate(data);

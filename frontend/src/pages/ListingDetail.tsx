@@ -5,6 +5,7 @@ import { listingService } from '../services/listing.service';
 import { bookingService } from '../services/booking.service';
 import { messageService } from '../services/message.service';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { format } from 'date-fns';
 import './ListingDetail.css';
 
@@ -12,6 +13,7 @@ export const ListingDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
@@ -26,11 +28,11 @@ export const ListingDetail = () => {
   const bookingMutation = useMutation({
     mutationFn: bookingService.create,
     onSuccess: () => {
-      alert('Réservation créée avec succès !');
+      toast.success('Réservation créée avec succès !');
       navigate('/my-bookings');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la réservation');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la réservation');
     },
   });
 
@@ -43,7 +45,7 @@ export const ListingDetail = () => {
 
   const handleBooking = () => {
     if (!checkIn || !checkOut) {
-      alert('Veuillez sélectionner les dates');
+      toast.warning('Veuillez sélectionner les dates');
       return;
     }
     bookingMutation.mutate({

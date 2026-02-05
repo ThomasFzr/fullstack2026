@@ -8,6 +8,7 @@ Application web type Airbnb avec gestion d'annonces, réservations et messagerie
 - **Backend**: Node.js + Express + TypeScript
 - **Base de données**: PostgreSQL
 - **Authentification**: JWT (access + refresh tokens)
+- **Notifications**: React-Toastify (toast modernes)
 - **Documentation API**: OpenAPI/Swagger
 - **Tests**: Jest + Supertest
 
@@ -187,6 +188,12 @@ L'application démarre sur `http://localhost:5173`
 - ✅ Envoi et réception de messages
 - ✅ Marquage des messages comme lus
 - ✅ Accès pour les co-hôtes (selon permissions)
+
+### Interface utilisateur
+- ✅ Design responsive
+- ✅ Notifications toast modernes (succès, erreur, avertissement, info)
+- ✅ Feedback visuel pour toutes les actions utilisateur
+- ✅ Fermeture automatique des notifications
 
 ## 🎯 Exigences techniques respectées
 

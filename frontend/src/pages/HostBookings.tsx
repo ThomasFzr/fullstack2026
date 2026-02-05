@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Link } from 'react-router-dom';
 import { bookingService, Booking } from '../services/booking.service';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { format } from 'date-fns';
 import './HostBookings.css';
 
 export const HostBookings = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   if (!user || (!user.is_host && user.role !== 'cohost')) {
     return <Navigate to="/" replace />;
@@ -30,10 +32,10 @@ export const HostBookings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['host-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['pending-bookings-count'] });
-      alert('Statut mis à jour avec succès');
+      toast.success('Statut mis à jour avec succès');
     },
     onError: (error: any) => {
-      alert(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la mise à jour');
     },
   });
 
